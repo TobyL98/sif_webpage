@@ -1,0 +1,3 @@
+streamlit
+pandas
+git+https://github.com/TobyL98/RP1_m-z_speciesidentify.git
