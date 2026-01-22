@@ -75,7 +75,7 @@ def load_theoretical_data(folder_path, m_range):
     """
     if not folder_path.exists():
         return None
-    return compare_score.read_theor_csv(folder_path, m_range)
+    return compare_score.load_theoretical_data(folder_path, m_range)
 
 # --- Main Interface ---
 
@@ -104,19 +104,18 @@ else:
                 # Reset file pointer to start
                 uploaded_file.seek(0)
                 
-                # compare_score.read_exp_PMF uses pd.read_table which accepts file-like objects
-                act_peaks_df, total_peaks = compare_score.read_exp_PMF(uploaded_file, mass_range)
+                # compare_score.read_exp_pmf uses pd.read_table which accepts file-like objects
+                act_peaks_df, total_peaks = compare_score.read_exp_pmf(uploaded_file, mass_range)
                 
                 st.info(f"**Detected Peaks in Range:** {total_peaks}")
                 
                 # 2. Run Comparison
                 # We pass output=None because we don't want to write to a file on the server
-                matches_dict, results_df = compare_score.peaks_comparison(
+                matches_dict, results_df = compare_score.process_all_species(
                     theor_peaks_list, 
                     act_peaks_df, 
                     threshold, 
-                    total_peaks, 
-                    output=None
+                    total_peaks,
                 )
                 
                 # 3. Display Results
@@ -151,4 +150,3 @@ else:
             except Exception as e:
                 st.error(f"An error occurred during analysis: {e}")
                 st.exception(e)
-
