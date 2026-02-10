@@ -13,12 +13,8 @@ import sys
 
 # Import the comparison logic from compare_score.py
 # Ensure this script is in the same directory or PYTHONPATH includes src/casi/scripts
-try:
-    import compare_score
-except ImportError:
-    # Fallback if running from a different directory context
-    sys.path.append(str(Path(__file__).parent))
-    import compare_score
+
+import casi.scripts.compare_score as compare_score
 
 # Page Configuration
 st.set_page_config(
@@ -38,7 +34,7 @@ st.sidebar.header("⚙️ Configuration")
 
 # 1. Theoretical Database Path
 # Defaulting to a relative path common in the project structure, but editable
-default_db_path = Path("theoretical_peptides_outputs/filtered_peptides")
+default_db_path = Path("filtered_peptides")
 db_path_input = st.sidebar.text_input(
     "Theoretical Peptides Folder", 
     value=str(default_db_path),
@@ -105,13 +101,14 @@ else:
                 uploaded_file.seek(0)
                 
                 # compare_score.read_exp_pmf uses pd.read_table which accepts file-like objects
-                act_peaks_df, total_peaks = compare_score.read_exp_pmf(uploaded_file, mass_range)
-                
+                act_peaks_df = compare_score.read_exp_pmf(uploaded_file, mass_range)
+                total_peaks = len(act_peaks_df)
+
                 st.info(f"**Detected Peaks in Range:** {total_peaks}")
                 
                 # 2. Run Comparison
                 # We pass output=None because we don't want to write to a file on the server
-                matches_dict, results_df = compare_score.process_all_species(
+                results_df, matches_map = compare_score.process_all_species(
                     theor_peaks_list, 
                     act_peaks_df, 
                     threshold, 
@@ -127,15 +124,7 @@ else:
                 # Display as interactive table
                 st.dataframe(
                     top_20, 
-                    use_container_width=True,
-                    column_config={
-                        "Match": st.column_config.ProgressColumn(
-                            "Match Score",
-                            format="%d",
-                            min_value=0,
-                            max_value=int(results_df["Match"].max())
-                        )
-                    }
+                    use_container_width=True
                 )
                 
                 # Download Button
